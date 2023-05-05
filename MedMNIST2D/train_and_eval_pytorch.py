@@ -22,7 +22,7 @@ from libauc.losses import AUCMLoss, CrossEntropyLoss
 from libauc.optimizers import PESG, Adam
 
 
-def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, download, model_flag, resize, as_rgb, model_path, run, test_flag, libauc_loss):
+def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, download, model_flag, resize, as_rgb, model_path, run, test_flag, libauc_loss, optimizer_type):
 
     lr = 0.001
     gamma=0.1
@@ -127,10 +127,17 @@ def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, download, mode
 
     if num_epochs == 0:
         return
-
-    # optimizer = torch.optim.Adam(model.parameters(), lr=lr)   # original
-    print('Using PESG optimizer')
-    optimizer = PESG(model, lr=lr, momentum=0.9, weight_decay=1e-4)    # use PESG optimizer
+    
+    if optimizer_type == 'Adam':
+        print('Using Adam optimizer')
+        optimizer = torch.optim.Adam(model.parameters(), lr=lr)  # original
+    elif optimizer_type == 'SGD':
+        print('Using SGD optimizer')
+        optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=0.9, weight_decay=1e-4)
+    elif optimizer_type == 'PESG':
+        print('Using PESG optimizer')
+        optimizer = PESG(model, lr=lr, momentum=0.9, weight_decay=1e-4)    # use PESG optimizer
+    
     scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=milestones, gamma=gamma)
 
     logs = ['loss', 'auc', 'acc']
@@ -308,6 +315,10 @@ if __name__ == '__main__':
                         action="store_true")
     parser.add_argument('--libauc_loss',
                         action="store_true")
+    parser.add_argument('--optimizer',
+                        default='adam',
+                        help='choose optimizer from adam, sgd, pesg',
+                        type=str)
 
 
     args = parser.parse_args()
@@ -324,5 +335,6 @@ if __name__ == '__main__':
     run = args.run
     test_flag = args.test_flag
     libauc_loss = args.libauc_loss
+    optimizer_type = args.optimizer
     
-    main(data_flag, output_root, num_epochs, gpu_ids, batch_size, download, model_flag, resize, as_rgb, model_path, run, test_flag, libauc_loss)
+    main(data_flag, output_root, num_epochs, gpu_ids, batch_size, download, model_flag, resize, as_rgb, model_path, run, test_flag, libauc_loss, optimizer_type)
