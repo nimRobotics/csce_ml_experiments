@@ -1,0 +1,5 @@
+libauc
+tensorboardX
+Pillow
+tqdm
+acsconv
