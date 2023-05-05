@@ -128,13 +128,13 @@ def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, download, mode
     if num_epochs == 0:
         return
     
-    if optimizer_type == 'Adam':
+    if optimizer_type == 'adam':
         print('Using Adam optimizer')
         optimizer = torch.optim.Adam(model.parameters(), lr=lr)  # original
-    elif optimizer_type == 'SGD':
+    elif optimizer_type == 'sgd':
         print('Using SGD optimizer')
         optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=0.9, weight_decay=1e-4)
-    elif optimizer_type == 'PESG':
+    elif optimizer_type == 'pesg':
         print('Using PESG optimizer')
         optimizer = PESG(model, lr=lr, momentum=0.9, weight_decay=1e-4)    # use PESG optimizer
     
