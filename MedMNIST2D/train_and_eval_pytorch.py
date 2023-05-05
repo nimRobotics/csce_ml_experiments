@@ -17,8 +17,12 @@ from models import ResNet18, ResNet50
 import medmnist
 from medmnist import INFO, Evaluator
 
+# import libAUC
+from libauc.losses import AUCMLoss, CrossEntropyLoss
+from libauc.optimizers import PESG, Adam
 
-def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, download, model_flag, resize, as_rgb, model_path, run):
+
+def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, download, model_flag, resize, as_rgb, model_path, run, test_flag, libauc_loss):
 
     lr = 0.001
     gamma=0.1
@@ -26,6 +30,7 @@ def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, download, mode
 
     info = INFO[data_flag]
     task = info['task']
+    print('==> Task: {}'.format(task))
     n_channels = 3 if as_rgb else info['n_channels']
     n_classes = len(info['label'])
 
@@ -41,6 +46,8 @@ def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, download, mode
         os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_ids[0])
 
     device = torch.device('cuda:{}'.format(gpu_ids[0])) if gpu_ids else torch.device('cpu') 
+    # device = torch.device("mps")
+
     
     output_root = os.path.join(output_root, data_flag, time.strftime("%y%m%d_%H%M%S"))
     if not os.path.exists(output_root):
@@ -92,10 +99,21 @@ def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, download, mode
     val_evaluator = medmnist.Evaluator(data_flag, 'val')
     test_evaluator = medmnist.Evaluator(data_flag, 'test')
 
+    print('==> Task: {}'.format(task))
     if task == "multi-label, binary-class":
-        criterion = nn.BCEWithLogitsLoss()
+        if libauc_loss:
+            criterion = AUCMLoss()
+            print('Using AUCMLoss')
+        else:
+            criterion = nn.BCEWithLogitsLoss()  # original
+            print('Using BCEWithLogitsLoss')
     else:
-        criterion = nn.CrossEntropyLoss()
+        if libauc_loss:
+            criterion = AUCMLoss()
+            print('Using AUCMLoss')
+        else:
+            criterion = nn.CrossEntropyLoss()   # original
+            print('Using CrossEntropyLoss')
 
     if model_path is not None:
         model.load_state_dict(torch.load(model_path, map_location=device)['net'], strict=True)
@@ -110,7 +128,9 @@ def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, download, mode
     if num_epochs == 0:
         return
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    # optimizer = torch.optim.Adam(model.parameters(), lr=lr)   # original
+    print('Using PESG optimizer')
+    optimizer = PESG(model, lr=lr, momentum=0.9, weight_decay=1e-4)    # use PESG optimizer
     scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=milestones, gamma=gamma)
 
     logs = ['loss', 'auc', 'acc']
@@ -164,11 +184,14 @@ def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, download, mode
 
     train_metrics = test(best_model, train_evaluator, train_loader_at_eval, task, criterion, device, run, output_root)
     val_metrics = test(best_model, val_evaluator, val_loader, task, criterion, device, run, output_root)
-    test_metrics = test(best_model, test_evaluator, test_loader, task, criterion, device, run, output_root)
-
     train_log = 'train  auc: %.5f  acc: %.5f\n' % (train_metrics[1], train_metrics[2])
     val_log = 'val  auc: %.5f  acc: %.5f\n' % (val_metrics[1], val_metrics[2])
-    test_log = 'test  auc: %.5f  acc: %.5f\n' % (test_metrics[1], test_metrics[2])
+
+    if test_flag:
+        test_metrics = test(best_model, test_evaluator, test_loader, task, criterion, device, run, output_root)
+        test_log = 'test  auc: %.5f  acc: %.5f\n' % (test_metrics[1], test_metrics[2])
+    else:
+        test_log = ''
 
     log = '%s\n' % (data_flag) + train_log + val_log + test_log
     print(log)
@@ -281,6 +304,10 @@ if __name__ == '__main__':
                         default='model1',
                         help='to name a standard evaluation csv file, named as {flag}_{split}_[AUC]{auc:.3f}_[ACC]{acc:.3f}@{run}.csv',
                         type=str)
+    parser.add_argument('--test_flag',
+                        action="store_true")
+    parser.add_argument('--libauc_loss',
+                        action="store_true")
 
 
     args = parser.parse_args()
@@ -295,5 +322,7 @@ if __name__ == '__main__':
     as_rgb = args.as_rgb
     model_path = args.model_path
     run = args.run
+    test_flag = args.test_flag
+    libauc_loss = args.libauc_loss
     
-    main(data_flag, output_root, num_epochs, gpu_ids, batch_size, download, model_flag, resize, as_rgb, model_path, run)
+    main(data_flag, output_root, num_epochs, gpu_ids, batch_size, download, model_flag, resize, as_rgb, model_path, run, test_flag, libauc_loss)
