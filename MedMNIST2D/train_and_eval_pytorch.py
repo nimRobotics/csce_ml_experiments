@@ -144,7 +144,7 @@ def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, download, mode
         optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=0.9, weight_decay=1e-4)
     elif optimizer_type == 'pesg':
         print('Using PESG optimizer')
-        optimizer = PESG(model, loss_fn=criterion, lr=lr, momentum=0.9, weight_decay=1e-4)   # use PESG optimizer
+        optimizer = PESG(model, loss_fn=criterion, lr=lr, momentum=0.9, weight_decay=1e-4, margin=1.0)
     
     scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=milestones, gamma=gamma)
 
