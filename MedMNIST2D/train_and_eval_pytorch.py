@@ -22,13 +22,12 @@ from libauc.losses import AUCMLoss, CrossEntropyLoss
 from libauc.optimizers import PESG, Adam
 import random
 
-# set all random seeds
-seed = 14
-random.seed(seed)
-np.random.seed(seed)
-torch.manual_seed(seed)
-torch.cuda.manual_seed(seed)
-torch.cuda.manual_seed_all(seed)
+def set_random_seeds(seed_value):
+    random.seed(seed_value)
+    np.random.seed(seed_value)
+    torch.manual_seed(seed_value)
+    torch.cuda.manual_seed(seed_value)
+    torch.cuda.manual_seed_all(seed_value)
 
 
 def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, download, model_flag, resize, as_rgb, model_path, run, test_flag, libauc_loss, optimizer_type):
@@ -280,6 +279,8 @@ def test(model, evaluator, data_loader, task, criterion, device, run, save_folde
 
 
 if __name__ == '__main__':
+    set_random_seeds(14)  # Set the seed value as desired
+
     parser = argparse.ArgumentParser(
         description='RUN Baseline model of MedMNIST2D')
 
