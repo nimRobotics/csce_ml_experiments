@@ -21,6 +21,11 @@ from medmnist import INFO, Evaluator
 from libauc.losses import AUCMLoss, CrossEntropyLoss
 from libauc.optimizers import PESG, Adam
 
+# set all random seeds
+seed = 14
+np.random.seed(seed)
+torch.manual_seed(seed)
+torch.cuda.manual_seed_all(seed)
 
 def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, download, model_flag, resize, as_rgb, model_path, run, test_flag, libauc_loss, optimizer_type):
 
