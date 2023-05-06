@@ -14,6 +14,9 @@ from tensorboardX import SummaryWriter
 from collections import OrderedDict
 from models import ResNet18, ResNet50
 
+# clear cache
+torch.cuda.empty_cache()
+
 import medmnist
 from medmnist import INFO, Evaluator
 
