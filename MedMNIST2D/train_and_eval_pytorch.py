@@ -74,7 +74,7 @@ def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, download, mode
     else:
         data_transform = transforms.Compose(
             [
-            transforms.RandomRotation(60),
+            transforms.RandomRotation(15),
             transforms.ToTensor(),
             transforms.Normalize(mean=[.5], std=[.5])])
      
