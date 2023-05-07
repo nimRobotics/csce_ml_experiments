@@ -21,7 +21,7 @@ import medmnist
 from medmnist import INFO, Evaluator
 
 # import libAUC
-from libauc.losses import AUCMLoss, CrossEntropyLoss
+from libauc.losses import AUCMLoss, CrossEntropyLoss, AUCM_MultiLabel
 from libauc.optimizers import PESG, Adam
 import random
 
@@ -121,8 +121,8 @@ def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, download, mode
     print('==> Task: {}'.format(task))
     if task == "multi-label, binary-class":
         if libauc_loss:
-            criterion = AUCMLoss()
-            print('Using AUCMLoss')
+            criterion = AUCM_MultiLabel(num_classes=14)
+            print('Using AUCMLoss Multi-label')
         else:
             criterion = nn.BCEWithLogitsLoss()  # original
             print('Using BCEWithLogitsLoss')
