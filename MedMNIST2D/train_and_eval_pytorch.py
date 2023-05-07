@@ -75,6 +75,8 @@ def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, download, mode
         data_transform = transforms.Compose(
             [
             transforms.RandomRotation(15),
+            #  random scaling 
+            transforms.RandomResizedCrop(28, scale=(0.8, 1.0), ratio=(0.75, 1.3333333333333333), interpolation=PIL.Image.NEAREST),
             transforms.ToTensor(),
             transforms.Normalize(mean=[.5], std=[.5])])
      
