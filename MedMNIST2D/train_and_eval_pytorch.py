@@ -73,7 +73,9 @@ def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, download, mode
             transforms.Normalize(mean=[.5], std=[.5])])
     else:
         data_transform = transforms.Compose(
-            [transforms.ToTensor(),
+            [
+            transforms.RandomRotation(30),
+            transforms.ToTensor(),
             transforms.Normalize(mean=[.5], std=[.5])])
      
     train_dataset = DataClass(split='train', transform=data_transform, download=download, as_rgb=as_rgb)
