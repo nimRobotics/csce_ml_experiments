@@ -19,8 +19,9 @@ class Transform3D:
             voxel = voxel * np.random.uniform()
         
         if self.rotation is not None:
-            # rotate by given angle
-            voxel = self._rotate(voxel, self.rotation)
+            # rotate by given angle for the last 3 dimensions
+            voxel[1:] = self._rotate(voxel[1:], self.rotation)
+            # voxel = self._rotate(voxel, self.rotation)
             
         if self.scale is not None:
             # scale by given factor
@@ -33,7 +34,6 @@ class Transform3D:
         return voxel.astype(np.float32)
     
     def _rotate(self, voxel, angle):
-        # conver to PIL image
         voxel = TF.to_pil_image(voxel)
         voxel = TF.rotate(voxel, angle)
         # convert back to numpy array
