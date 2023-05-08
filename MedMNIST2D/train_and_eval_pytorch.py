@@ -33,7 +33,7 @@ def set_random_seeds(seed_value):
     torch.cuda.manual_seed_all(seed_value)
 
 
-def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, download, model_flag, resize, as_rgb, model_path, run, test_flag, libauc_loss, optimizer_type):
+def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, download, model_flag, resize, as_rgb, model_path, run, test_flag, libauc_loss, optimizer_type, rotation, scale, translation):
 
     lr = 0.001
     gamma=0.1
@@ -66,21 +66,19 @@ def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, download, mode
 
     print('==> Preparing data...')
 
+    transformation_list = [transforms.ToTensor()]   # store all the transformations to be applied on the dataset
+
     if resize:
-        data_transform = transforms.Compose(
-            [transforms.Resize((224, 224), interpolation=PIL.Image.NEAREST), 
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[.5], std=[.5])])
-    else:
-        data_transform = transforms.Compose(
-            [
-            transforms.RandomRotation(15),
-            #  random scaling 
-            # transforms.RandomResizedCrop(28, scale=(0.8, 1.0), ratio=(0.75, 1.3333333333333333), interpolation=PIL.Image.NEAREST),
-            # tranlate data
-            transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[.5], std=[.5])])
+        transformation_list.append(transforms.Resize((224, 224), interpolation=PIL.Image.NEAREST))
+    if rotation is not None:
+        transformation_list.append(transforms.RandomRotation(rotation))
+    if scale is not None:
+        transformation_list.append(transforms.RandomResizedCrop(28, scale=(scale, 1.0), ratio=(0.75, 1.3333333333333333), interpolation=PIL.Image.NEAREST))
+    if translation is not None:
+        transformation_list.append(transforms.RandomAffine(degrees=0, translate=(translation, translation)))
+
+    transformation_list.append(transforms.Normalize(mean=[.5], std=[.5]))
+    data_transform = transforms.Compose(transformation_list)
      
     train_dataset = DataClass(split='train', transform=data_transform, download=download, as_rgb=as_rgb)
     val_dataset = DataClass(split='val', transform=data_transform, download=download, as_rgb=as_rgb)
@@ -340,6 +338,18 @@ if __name__ == '__main__':
                         default='adam',
                         help='choose optimizer from adam, sgd, pesg',
                         type=str)
+    parser.add_argument('--rotation',
+                        default=None,
+                        help='rotation angle of data augmentation',
+                        type=int)
+    parser.add_argument('--scale',
+                        default=None,
+                        help='scaling, min val of aspect ratio',
+                        type=float)
+    parser.add_argument('--translation',
+                        default=None,
+                        help='translation of data augmentation',
+                        type=float)
 
 
     args = parser.parse_args()
@@ -357,5 +367,24 @@ if __name__ == '__main__':
     test_flag = args.test_flag
     libauc_loss = args.libauc_loss
     optimizer_type = args.optimizer
+    rotation = args.rotation
+    scale = args.scale
+    translation = args.translation
     
-    main(data_flag, output_root, num_epochs, gpu_ids, batch_size, download, model_flag, resize, as_rgb, model_path, run, test_flag, libauc_loss, optimizer_type)
+    main(data_flag, 
+        output_root, 
+        num_epochs, 
+        gpu_ids, 
+        batch_size, 
+        download, 
+        model_flag, 
+        resize, 
+        as_rgb, 
+        model_path, 
+        run, 
+        test_flag, 
+        libauc_loss, 
+        optimizer_type,
+        rotation,
+        scale,
+        translation)
