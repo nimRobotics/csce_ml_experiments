@@ -33,7 +33,12 @@ class Transform3D:
         return voxel.astype(np.float32)
     
     def _rotate(self, voxel, angle):
-        return TF.rotate(voxel, angle)
+        # conver to PIL image
+        voxel = TF.to_pil_image(voxel)
+        voxel = TF.rotate(voxel, angle)
+        # convert back to numpy array
+        voxel = TF.to_tensor(voxel)
+        return voxel
     
     def _scale(self, voxel):
         return TF.affine(voxel, angle=0, translate=[0, 0], scale=0.8, shear=0)
