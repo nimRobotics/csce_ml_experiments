@@ -37,7 +37,7 @@ class Transform3D:
         return voxel.astype(np.float32)
     
     def _rotate(self, voxel, angle):
-        voxel = TF.to_pil_image(voxel)
+        # voxel = TF.to_pil_image(voxel)
         voxel = TF.rotate(voxel, angle)
         # convert back to numpy array
         voxel = TF.to_tensor(voxel)
