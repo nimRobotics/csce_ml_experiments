@@ -33,7 +33,7 @@ def set_random_seeds(seed_value):
     torch.cuda.manual_seed_all(seed_value)
 
 
-def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, download, model_flag, resize, as_rgb, model_path, run, test_flag, libauc_loss, optimizer_type, rotation, scale, translation):
+def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, download, model_flag, resize, as_rgb, model_path, run, test_flag, libauc_loss, optimizer_type, rotation, scaling, translation):
 
     lr = 0.001
     gamma=0.1
@@ -74,12 +74,12 @@ def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, download, mode
     if rotation is not None:
         print('==> Randomly rotate the images by {} degrees...'.format(rotation))
         transformation_list.append(transforms.RandomRotation(rotation))
-    if scale is not None:
+    if scaling:
         print('==> Randomly scale the images by {}...'.format(scale))
-        transformation_list.append(transforms.RandomResizedCrop(28, scale=(scale, 1.0), ratio=(0.75, 1.3333333333333333), interpolation=PIL.Image.NEAREST))
-    if translation is not None:
+        transformation_list.append(transforms.RandomResizedCrop(28, scale=(0.8, 1.0), ratio=(0.75, 1.3333333333333333), interpolation=PIL.Image.NEAREST))
+    if translation:
         print('==> Randomly translate the images by {} pixels...'.format(translation))
-        transformation_list.append(transforms.RandomAffine(degrees=0, translate=(translation, translation)))
+        transformation_list.append(transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)))
 
     transformation_list.append(transforms.Normalize(mean=[.5], std=[.5]))
     data_transform = transforms.Compose(transformation_list)
@@ -347,14 +347,11 @@ if __name__ == '__main__':
                         help='rotation angle of data augmentation',
                         type=int)
     parser.add_argument('--scale',
-                        default=None,
-                        help='scaling, min val of aspect ratio',
-                        type=float)
+                        action="store_true",
+                        help='scaling for data augmentation')
     parser.add_argument('--translation',
-                        default=None,
-                        help='translation of data augmentation',
-                        type=float)
-
+                        action="store_true",
+                        help='translation for data augmentation')
 
     args = parser.parse_args()
     data_flag = args.data_flag
