@@ -90,9 +90,9 @@ def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, conv, pretrain
         train_transforms.append(transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)))
         eval_transforms.append(transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)))
 
-    # add to tensor
-    train_transforms.append(transforms.ToTensor())
-    eval_transforms.append(transforms.ToTensor())
+    # # add to tensor
+    # train_transforms.append(transforms.ToTensor())
+    # eval_transforms.append(transforms.ToTensor())
 
     train_transform = transforms.Compose(train_transforms)
     eval_transform = transforms.Compose(eval_transforms)
