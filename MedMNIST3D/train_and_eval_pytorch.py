@@ -17,6 +17,20 @@ from utils import model_to_syncbn, Transform3D
 import medmnist
 from medmnist import INFO, Evaluator
 
+# clear cache
+torch.cuda.empty_cache()
+# import libAUC
+from libauc.losses import AUCMLoss, CrossEntropyLoss, AUCM_MultiLabel
+from libauc.optimizers import PESG, Adam
+import random
+
+def set_random_seeds(seed_value):
+    random.seed(seed_value)
+    np.random.seed(seed_value)
+    torch.manual_seed(seed_value)
+    torch.cuda.manual_seed(seed_value)
+    torch.cuda.manual_seed_all(seed_value)
+
 
 def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, conv, pretrained_3d, download, model_flag, as_rgb, shape_transform, model_path, run):
 
@@ -48,6 +62,28 @@ def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, conv, pretrain
         os.makedirs(output_root)
 
     print('==> Preparing data...')
+
+    # add rotation and scaling
+    train_transforms = []
+    eval_transforms = []
+
+    if shape_transform:
+        train_transforms.append(Transform3D(mul='random'))
+        eval_transforms.append(Transform3D(mul='0.5'))
+    else:
+        train_transforms.append(Transform3D())
+        eval_transforms.append(Transform3D())
+
+    # rotation and scaling
+    train_transforms.append(transforms.RandomAffine(degrees=10, scale=(0.9, 1.1)))
+    eval_transforms.append(transforms.RandomAffine(degrees=10, scale=(0.9, 1.1)))
+
+    # add to tensor
+    train_transforms.append(transforms.ToTensor())
+    eval_transforms.append(transforms.ToTensor())
+
+    train_transform = transforms.Compose(train_transforms)
+    eval_transform = transforms.Compose(eval_transforms)
 
     train_transform = Transform3D(mul='random') if shape_transform else Transform3D()
     eval_transform = Transform3D(mul='0.5') if shape_transform else Transform3D()
