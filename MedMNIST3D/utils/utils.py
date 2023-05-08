@@ -55,11 +55,11 @@ class Transform3D:
         stacked_slices = np.stack([TF.to_tensor(slice) for slice in pil_slices], axis=2)
         return stacked_slices
     
-    def _scale(self, voxel):
-        return TF.affine(voxel, angle=0, translate=[0, 0], scale=0.8, shear=0)
+    # def _scale(self, voxel):
+    #     return TF.affine(voxel, angle=0, translate=[0, 0], scale=0.8, shear=0)
     
-    def _translate(self, voxel):
-        return TF.affine(voxel, angle=0, translate=[0.1, 0.1], scale=1, shear=0)
+    # def _translate(self, voxel):
+    #     return TF.affine(voxel, angle=0, translate=[0.1, 0.1], scale=1, shear=0)
 
 
 
