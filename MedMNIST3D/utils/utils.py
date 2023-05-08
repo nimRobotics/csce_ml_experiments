@@ -20,7 +20,6 @@ class Transform3D:
         
         if self.rotation is not None:
             # rotate by given angle for the last 3 dimensions
-            print(voxel.shape) # 1, 28, 28, 28
             # convert to 3D using reshape
             voxel_3d = voxel.reshape(28,28,28)
             voxel = self._rotate(voxel_3d, self.rotation)
