@@ -56,6 +56,7 @@ def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, conv, pretrain
         os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_ids[0])
 
     device = torch.device('cuda:{}'.format(gpu_ids[0])) if gpu_ids else torch.device('cpu') 
+    device = torch.device("mps")
     
         
     output_root = os.path.join(output_root, data_flag, time.strftime("%y%m%d_%H%M%S"))
@@ -68,12 +69,17 @@ def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, conv, pretrain
     train_transforms = []
     eval_transforms = []
 
-    
+    if shape_transform:
+        train_transforms.append(Transform3D(mul='random'))
+        eval_transforms.append(Transform3D(mul='0.5'))
+    else:
+        train_transforms.append(Transform3D())
+        eval_transforms.append(Transform3D())
 
-    # if rotation is not None:
-    #     print('==> Randomly rotate the images by {} degrees...'.format(rotation))
-    #     train_transforms.append(transforms.RandomRotation(rotation))
-    #     eval_transforms.append(transforms.RandomRotation(rotation))
+    if rotation is not None:
+        print('==> Randomly rotate the images by {} degrees...'.format(rotation))
+        train_transforms.append(transforms.RandomRotation(rotation))
+        eval_transforms.append(transforms.RandomRotation(rotation))
 
     # if scaling:
     #     print('==> Randomly scale the images by 0.9 to 1.1...')
@@ -85,19 +91,16 @@ def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, conv, pretrain
     #     train_transforms.append(transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)))
     #     eval_transforms.append(transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)))
 
-    if shape_transform:
-        train_transforms.append(Transform3D(mul='random'))
-        eval_transforms.append(Transform3D(mul='0.5'))
-    else:
-        train_transforms.append(Transform3D())
-        eval_transforms.append(Transform3D())
-
-    # add to tensor
-    train_transforms.append(transforms.ToTensor())
-    eval_transforms.append(transforms.ToTensor())
+    
+    # # add to tensor
+    # train_transforms.append(transforms.ToTensor())
+    # eval_transforms.append(transforms.ToTensor())
 
     train_transform = transforms.Compose(train_transforms)
     eval_transform = transforms.Compose(eval_transforms)
+
+    # train_transform = Transform3D(mul='random') if shape_transform else Transform3D()
+    # eval_transform = Transform3D(mul='0.5') if shape_transform else Transform3D()
 
      
     train_dataset = DataClass(split='train', transform=train_transform, download=download, as_rgb=as_rgb)

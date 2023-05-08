@@ -13,7 +13,6 @@ class Transform3D:
             voxel = voxel * 0.5
         elif self.mul == 'random':
             voxel = voxel * np.random.uniform()
-        
         return voxel.astype(np.float32)
 
 
