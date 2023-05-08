@@ -69,12 +69,16 @@ def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, download, mode
     transformation_list = [transforms.ToTensor()]   # store all the transformations to be applied on the dataset
 
     if resize:
+        print('==> Resize the images to 224x224...')
         transformation_list.append(transforms.Resize((224, 224), interpolation=PIL.Image.NEAREST))
     if rotation is not None:
+        print('==> Randomly rotate the images by {} degrees...'.format(rotation))
         transformation_list.append(transforms.RandomRotation(rotation))
     if scale is not None:
+        print('==> Randomly scale the images by {}...'.format(scale))
         transformation_list.append(transforms.RandomResizedCrop(28, scale=(scale, 1.0), ratio=(0.75, 1.3333333333333333), interpolation=PIL.Image.NEAREST))
     if translation is not None:
+        print('==> Randomly translate the images by {} pixels...'.format(translation))
         transformation_list.append(transforms.RandomAffine(degrees=0, translate=(translation, translation)))
 
     transformation_list.append(transforms.Normalize(mean=[.5], std=[.5]))
