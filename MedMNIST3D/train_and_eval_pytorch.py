@@ -80,10 +80,10 @@ def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, conv, pretrain
     train_transforms.append(transforms.ToTensor())
     eval_transforms.append(transforms.ToTensor())
 
-    if rotation is not None:
-        print('==> Randomly rotate the images by {} degrees...'.format(rotation))
-        train_transforms.append(transforms.RandomRotation(rotation))
-        eval_transforms.append(transforms.RandomRotation(rotation))
+    # if rotation is not None:
+    #     print('==> Randomly rotate the images by {} degrees...'.format(rotation))
+    #     train_transforms.append(transforms.RandomRotation(rotation))
+    #     eval_transforms.append(transforms.RandomRotation(rotation))
 
     # if scaling:
     #     print('==> Randomly scale the images by 0.9 to 1.1...')
@@ -97,11 +97,14 @@ def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, conv, pretrain
 
     
 
-    train_transform = transforms.Compose(train_transforms)
-    eval_transform = transforms.Compose(eval_transforms)
+    # train_transform = transforms.Compose(train_transforms)
+    # eval_transform = transforms.Compose(eval_transforms)
 
     # train_transform = Transform3D(mul='random') if shape_transform else Transform3D()
     # eval_transform = Transform3D(mul='0.5') if shape_transform else Transform3D()
+
+    train_transform = Transform3D(mul='random', rotation=rotation, scaling=scaling, translation=translation) if shape_transform else Transform3D()
+    eval_transform = Transform3D(mul='0.5', rotation=rotation, scaling=scaling, translation=translation) if shape_transform else Transform3D()
 
      
     train_dataset = DataClass(split='train', transform=train_transform, download=download, as_rgb=as_rgb)

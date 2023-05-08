@@ -1,11 +1,15 @@
 import torch.nn as nn
 import numpy as np
 from .batchnorm import SynchronizedBatchNorm3d, SynchronizedBatchNorm2d
+import torchvision.transforms.functional as TF
 
 class Transform3D:
 
-    def __init__(self, mul=None):
+    def __init__(self, mul=None, rotation=None, scale=None, translate=None):
         self.mul = mul
+        self.rotation = rotation
+        self.scale = scale
+        self.translate = translate
 
     def __call__(self, voxel):
    
@@ -13,7 +17,30 @@ class Transform3D:
             voxel = voxel * 0.5
         elif self.mul == 'random':
             voxel = voxel * np.random.uniform()
+        
+        if self.rotation is not None:
+            # rotate by given angle
+            voxel = self._rotate(voxel, self.rotation)
+            
+        if self.scale is not None:
+            # scale by given factor
+            voxel = self._scale(voxel)
+
+        if self.translate is not None:
+            # translate by given factor
+            voxel = self._translate(voxel)
+        
         return voxel.astype(np.float32)
+    
+    def _rotate(self, voxel, angle):
+        return TF.rotate(voxel, angle)
+    
+    def _scale(self, voxel):
+        return TF.affine(voxel, angle=0, translate=[0, 0], scale=0.8, shear=0)
+    
+    def _translate(self, voxel):
+        return TF.affine(voxel, angle=0, translate=[0.1, 0.1], scale=1, shear=0)
+
 
 
 def model_to_syncbn(model):
