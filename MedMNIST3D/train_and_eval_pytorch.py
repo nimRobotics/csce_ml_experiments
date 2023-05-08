@@ -68,12 +68,7 @@ def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, conv, pretrain
     train_transforms = []
     eval_transforms = []
 
-    if shape_transform:
-        train_transforms.append(Transform3D(mul='random'))
-        eval_transforms.append(Transform3D(mul='0.5'))
-    else:
-        train_transforms.append(Transform3D())
-        eval_transforms.append(Transform3D())
+    
 
     if rotation is not None:
         print('==> Randomly rotate the images by {} degrees...'.format(rotation))
@@ -89,6 +84,13 @@ def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, conv, pretrain
         print('==> Randomly translate the images by 0.1...')
         train_transforms.append(transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)))
         eval_transforms.append(transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)))
+
+    if shape_transform:
+        train_transforms.append(Transform3D(mul='random'))
+        eval_transforms.append(Transform3D(mul='0.5'))
+    else:
+        train_transforms.append(Transform3D())
+        eval_transforms.append(Transform3D())
 
     # # add to tensor
     # train_transforms.append(transforms.ToTensor())
