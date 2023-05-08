@@ -222,7 +222,7 @@ def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, download, mode
         test_log = ''
 
     log = '%s\n' % (data_flag) + train_log + val_log + test_log + \
-            'task: %s' % (task) + \
+            'task: %s \n' % (task) + \
             'batch_size: %d  lr: %f  num_epochs: %d  optimizer: %s  optimizer_type: %s  milestones: %s  gamma: %f\n' % \
             (batch_size, lr, num_epochs, optimizer, optimizer_type, milestones, gamma) + \
             'rotation: %d  translation: %d  scale: %d  libauc_loss: %d  \n' % \
