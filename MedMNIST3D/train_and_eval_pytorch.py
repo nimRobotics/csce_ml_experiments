@@ -23,6 +23,7 @@ torch.cuda.empty_cache()
 from libauc.losses import AUCMLoss, CrossEntropyLoss, AUCM_MultiLabel
 from libauc.optimizers import PESG, Adam
 import random
+import PIL
 
 def set_random_seeds(seed_value):
     random.seed(seed_value)
@@ -32,7 +33,7 @@ def set_random_seeds(seed_value):
     torch.cuda.manual_seed_all(seed_value)
 
 
-def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, conv, pretrained_3d, download, model_flag, as_rgb, shape_transform, model_path, run):
+def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, conv, pretrained_3d, download, model_flag, as_rgb, shape_transform, model_path, run, test_flag, libauc_loss, optimizer_type, rotation, scaling, translation):
 
     lr = 0.001
     gamma=0.1
@@ -74,9 +75,20 @@ def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, conv, pretrain
         train_transforms.append(Transform3D())
         eval_transforms.append(Transform3D())
 
-    # rotation and scaling
-    train_transforms.append(transforms.RandomAffine(degrees=10, scale=(0.9, 1.1)))
-    eval_transforms.append(transforms.RandomAffine(degrees=10, scale=(0.9, 1.1)))
+    if rotation is not None:
+        print('==> Randomly rotate the images by {} degrees...'.format(rotation))
+        train_transforms.append(transforms.RandomRotation(rotation))
+        eval_transforms.append(transforms.RandomRotation(rotation))
+
+    if scaling:
+        print('==> Randomly scale the images by 0.9 to 1.1...')
+        train_transforms.append(transforms.RandomResizedCrop(28, scale=(0.8, 1.0), ratio=(0.75, 1.3333333333333333), interpolation=PIL.Image.NEAREST))
+        eval_transforms.append(transforms.RandomResizedCrop(28, scale=(0.8, 1.0), ratio=(0.75, 1.3333333333333333), interpolation=PIL.Image.NEAREST))
+
+    if translation:
+        print('==> Randomly translate the images by 0.1...')
+        train_transforms.append(transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)))
+        eval_transforms.append(transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)))
 
     # add to tensor
     train_transforms.append(transforms.ToTensor())
@@ -85,8 +97,6 @@ def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, conv, pretrain
     train_transform = transforms.Compose(train_transforms)
     eval_transform = transforms.Compose(eval_transforms)
 
-    train_transform = Transform3D(mul='random') if shape_transform else Transform3D()
-    eval_transform = Transform3D(mul='0.5') if shape_transform else Transform3D()
      
     train_dataset = DataClass(split='train', transform=train_transform, download=download, as_rgb=as_rgb)
     train_dataset_at_eval = DataClass(split='train', transform=eval_transform, download=download, as_rgb=as_rgb)
@@ -132,7 +142,11 @@ def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, conv, pretrain
     val_evaluator = medmnist.Evaluator(data_flag, 'val')
     test_evaluator = medmnist.Evaluator(data_flag, 'test')
 
-    criterion = nn.CrossEntropyLoss()
+    if libauc_loss:
+        criterion = AUCMLoss()
+        print('Using AUCMLoss')
+    else:
+        criterion = nn.CrossEntropyLoss()
 
     if model_path is not None:
         model.load_state_dict(torch.load(model_path, map_location=device)['net'], strict=True)
@@ -147,8 +161,17 @@ def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, conv, pretrain
     if num_epochs == 0:
         return
 
+    if optimizer_type == 'adam':
+        print('Using Adam optimizer')
+        optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    elif optimizer_type == 'sgd':
+        print('Using SGD optimizer')
+        optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=0.9, weight_decay=1e-4)
+    elif optimizer_type == 'pesg':
+        print('Using PESG optimizer')
+        optimizer = PESG(model, loss_fn=criterion, lr=lr, momentum=0.9, weight_decay=1e-4)
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+
     scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=milestones, gamma=gamma)
     
     logs = ['loss', 'auc', 'acc']
@@ -319,6 +342,24 @@ if __name__ == '__main__':
                         default='model1',
                         help='to name a standard evaluation csv file, named as {flag}_{split}_[AUC]{auc:.3f}_[ACC]{acc:.3f}@{run}.csv',
                         type=str)
+    parser.add_argument('--test_flag',
+                        action="store_true")
+    parser.add_argument('--libauc_loss',
+                        action="store_true")
+    parser.add_argument('--optimizer',
+                        default='adam',
+                        help='choose optimizer from adam, sgd, pesg',
+                        type=str)
+    parser.add_argument('--rotation',
+                        default=None,
+                        help='rotation angle of data augmentation',
+                        type=int)
+    parser.add_argument('--scale',
+                        action="store_true",
+                        help='scaling for data augmentation')
+    parser.add_argument('--translation',
+                        action="store_true",
+                        help='translation for data augmentation')
 
 
     args = parser.parse_args()
@@ -335,5 +376,29 @@ if __name__ == '__main__':
     model_path = args.model_path
     shape_transform = args.shape_transform
     run = args.run
+    test_flag = args.test_flag
+    libauc_loss = args.libauc_loss
+    optimizer_type = args.optimizer
+    rotation = args.rotation
+    scale = args.scale
+    translation = args.translation
 
-    main(data_flag, output_root, num_epochs, gpu_ids, batch_size, conv, pretrained_3d, download, model_flag, as_rgb, shape_transform, model_path, run)
+    main(data_flag, 
+        output_root, 
+        num_epochs, 
+        gpu_ids, 
+        batch_size, 
+        conv, 
+        pretrained_3d, 
+        download, 
+        model_flag, 
+        as_rgb, 
+        shape_transform, 
+        model_path, 
+        run,
+        test_flag,
+        libauc_loss,
+        optimizer_type,
+        rotation,
+        scale,
+        translation)
