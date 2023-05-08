@@ -20,7 +20,7 @@ class Transform3D:
         
         if self.rotation is not None:
             # rotate by given angle for the last 3 dimensions
-            voxel[1:] = self._rotate(voxel[1:], self.rotation)
+            voxel[...,:] = self._rotate(voxel[...,:], self.rotation)
             # voxel = self._rotate(voxel, self.rotation)
             
         if self.scale is not None:
