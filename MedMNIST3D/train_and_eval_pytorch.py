@@ -56,7 +56,7 @@ def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, conv, pretrain
         os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_ids[0])
 
     device = torch.device('cuda:{}'.format(gpu_ids[0])) if gpu_ids else torch.device('cpu') 
-    device = torch.device("mps")
+    # device = torch.device("mps")
     
         
     output_root = os.path.join(output_root, data_flag, time.strftime("%y%m%d_%H%M%S"))
