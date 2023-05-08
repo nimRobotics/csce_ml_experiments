@@ -37,11 +37,22 @@ class Transform3D:
         return voxel.astype(np.float32)
     
     def _rotate(self, voxel, angle):
-        # voxel = TF.to_pil_image(voxel)
-        voxel = TF.rotate(voxel, angle)
-        # convert back to numpy array
-        voxel = TF.to_tensor(voxel)
-        return voxel
+        """
+        the voxel is a 28x28x28 numpy array
+        loop over the third dimension and rotate each slice
+        and stack them back together
+        TF.to_pil_image
+        TF.rotate
+        TF.to_tensor
+        """
+        pil_slices = []
+        for i in range(voxel.shape[2]):
+            slice = voxel[:, :, i]
+            pil_slice = TF.to_pil_image(slice)
+            rotated_slice = TF.rotate(pil_slice, angle)
+            pil_slices.append(rotated_slice)
+        stacked_slices = np.stack([TF.to_tensor(slice) for slice in pil_slices], axis=2)
+        return stacked_slices
     
     def _scale(self, voxel):
         return TF.affine(voxel, angle=0, translate=[0, 0], scale=0.8, shear=0)
