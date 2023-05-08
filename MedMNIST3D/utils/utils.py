@@ -48,6 +48,7 @@ class Transform3D:
         pil_slices = []
         for i in range(voxel.shape[2]):
             slice = voxel[:, :, i]
+            slice = (slice * 255).astype(np.uint8)  # convert to uint8 data type
             pil_slice = TF.to_pil_image(slice)
             rotated_slice = TF.rotate(pil_slice, angle)
             pil_slices.append(rotated_slice)
