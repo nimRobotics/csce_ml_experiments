@@ -75,10 +75,10 @@ def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, conv, pretrain
         train_transforms.append(transforms.RandomRotation(rotation))
         eval_transforms.append(transforms.RandomRotation(rotation))
 
-    if scaling:
-        print('==> Randomly scale the images by 0.9 to 1.1...')
-        train_transforms.append(transforms.RandomResizedCrop(28, scale=(0.8, 1.0), ratio=(0.75, 1.3333333333333333), interpolation=PIL.Image.NEAREST))
-        eval_transforms.append(transforms.RandomResizedCrop(28, scale=(0.8, 1.0), ratio=(0.75, 1.3333333333333333), interpolation=PIL.Image.NEAREST))
+    # if scaling:
+    #     print('==> Randomly scale the images by 0.9 to 1.1...')
+    #     train_transforms.append(transforms.RandomResizedCrop(28, scale=(0.8, 1.0), ratio=(0.75, 1.3333333333333333), interpolation=PIL.Image.NEAREST))
+    #     eval_transforms.append(transforms.RandomResizedCrop(28, scale=(0.8, 1.0), ratio=(0.75, 1.3333333333333333), interpolation=PIL.Image.NEAREST))
 
     if translation:
         print('==> Randomly translate the images by 0.1...')
