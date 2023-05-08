@@ -227,13 +227,21 @@ def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, conv, pretrain
 
     train_metrics = test(best_model, train_evaluator, train_loader_at_eval, criterion, device, run, output_root)
     val_metrics = test(best_model, val_evaluator, val_loader, criterion, device, run, output_root)
-    test_metrics = test(best_model, test_evaluator, test_loader, criterion, device, run, output_root)
-
     train_log = 'train  auc: %.5f  acc: %.5f\n' % (train_metrics[1], train_metrics[2])
     val_log = 'val  auc: %.5f  acc: %.5f\n' % (val_metrics[1], val_metrics[2])
-    test_log = 'test  auc: %.5f  acc: %.5f\n' % (test_metrics[1], test_metrics[2])
 
-    log = '%s\n' % (data_flag) + train_log + val_log + test_log + '\n'
+    if test_flag:
+        test_metrics = test(best_model, test_evaluator, test_loader, criterion, device, run, output_root)
+        test_log = 'test  auc: %.5f  acc: %.5f\n' % (test_metrics[1], test_metrics[2])
+    else:
+        test_log = ''
+
+    log = '%s\n' % (data_flag) + train_log + val_log + test_log + \
+            'task: %s \n' % (task) + \
+            'batch_size: %d  lr: %f  num_epochs: %d  optimizer: %s  optimizer_type: %s  milestones: %s  gamma: %f\n' % \
+            (batch_size, lr, num_epochs, optimizer, optimizer_type, milestones, gamma) + \
+            'rotation: %d  translation: %d  scale: %d  libauc_loss: %d  \n' % \
+            (rotation, translation, scale, libauc_loss)
     print(log)
     
     with open(os.path.join(output_root, '%s_log.txt' % (data_flag)), 'a') as f:
