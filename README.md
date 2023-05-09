@@ -1,71 +1,252 @@
 # MedMNIST Experiments 
 
-Training and evaluation scripts to reproduce both 2D and 3D experiments in our [MedMNIST](https://github.com/MedMNIST/MedMNIST/) paper, including PyTorch, auto-sklearn, AutoKeras and Google AutoML Vision together with their weights ;)
+This repository contains the code for the experiments of [MedMNIST](https://github.com/MedMNIST/MedMNIST/). 
+Most of the code presented here is based on the official MedMNIST code and official LibAUC code.
+
+- https://github.com/MedMNIST/experiments
+- https://github.com/MedMNIST/MedMNIST
+- https://github.com/Optimization-AI/LibAUC
+
+
+
+Training and evaluation scripts to reproduce both 2D and 3D experiments are available in PyTorch
 
 
 # Code Structure
 * [`MedMNIST2D/`](./MedMNIST2D/): training and evaluation scripts of MedMNIST2D
   * [`models.py`](./MedMNIST2D/models.py): *ResNet-18* and *ResNet-50* models (for small-image datasets like CIFAR-10/100)
   * [`train_and_eval_pytorch.py`](./MedMNIST2D/train_and_eval_pytorch.py): training and evaluation script implemented with PyTorch
-  * [`train_and_eval_autokeras.py`](./MedMNIST2D/train_and_eval_autokeras.py):  training and evaluation script of Autokeras
-  * [`train_and_eval_autosklearn.py`](./MedMNIST2D/train_and_eval_autosklearn.py): training and evaluation script of auto-sklearn
-  * [`eval_google_automl_vision.py`](./MedMNIST2D/eval_google_automl_vision.py): evaluation script of models trained by Google AutoML Vision
 
 * [`MedMNIST3D/`](./MedMNIST3D/): training and evaluation scripts of MedMNIST3D
   * [`models.py`](./MedMNIST3D/models.py): *ResNet-18* and *ResNet-50* models (for small-image datasets like CIFAR-10/100), basically same as [`MedMNIST2D/models.py`](./MedMNIST2D/models.py)
   * [`train_and_eval_pytorch.py`](./MedMNIST3D/train_and_eval_pytorch.py): training and evaluation script implemented with PyTorch
-  * [`train_and_eval_autokeras.py`](./MedMNIST3D/train_and_eval_autokeras.py):  training and evaluation script of Autokeras
-  * [`train_and_eval_autosklearn.py`](./MedMNIST3D/train_and_eval_autosklearn.py): training and evaluation script of auto-sklearn
-
     
+
 # Installation and Requirements
 This repository is working with [MedMNIST official code](https://github.com/MedMNIST/MedMNIST/) and PyTorch.
 
 1. Setup the required environments and install `medmnist` as a standard Python package:
 
-        pip install medmnist
-
-2. Check whether you have installed the latest [version](https://github.com/MedMNIST/MedMNIST/tree/main/medmnist/info.py):
-
-        >>> import medmnist
-        >>> print(medmnist.__version__)
-
-3. The code requires common Python environments for machine learning; Basically, it was tested with
-
-- Python 3 (Anaconda 3.6.3 specifically)
-- PyTorch==1.3.1
-- autokeras\==1.0.15
-- auto-sklearn\==0.10.0
-- tensorflow==2.3.0
-
-  Higher (or lower) versions should also work (perhaps with minor modifications).
-
-4. For *MedMNIST3D*, our code additionally requires [ACSConv](https://github.com/M3DV/ACSConv). Install it through `pip` via the command bellow:
-
-        pip install git+git://github.com/M3DV/ACSConv.git
-    
-    Then you can check use the cool `2.5D`, `3D` and `ACS` model convertor as follows:
-
-    ```python
-    from torchvision.models import resnet18
-    from acsconv.converters import ACSConverter
-    # model_2d is a standard pytorch 2D model
-    model_2d = resnet18(pretrained=True)
-    B, C_in, H, W = (1, 3, 64, 64)
-    input_2d = torch.rand(B, C_in, H, W)
-    output_2d = model_2d(input_2d)
-
-    model_3d = ACSConverter(model_2d)
-    # once converted, model_3d is using ACSConv and capable of processing 3D volumes.
-    B, C_in, D, H, W = (1, 3, 64, 64, 64)
-    input_3d = torch.rand(B, C_in, D, H, W)
-    output_3d = model_3d(input_3d)
+    ```bash
+      pip install medmnist
+      pip install acsconv
+      pip install tensorboardX
+      pip install libauc
     ```
 
-5. Download the model weights and predictions from [Zenodo](https://doi.org/10.5281/zenodo.7782113).
-    -  `weights_*.zip`: 
-        - PyTorch, AutoKeras and Google AutoML Vision are provided for MedMNIST2D.
-        - PyTorch and AutoKeras are provided for MedMNIST3D. 
-        - If you are using PyTorch model weights, please note that the ResNet18_224 / ResNet50_224 models are trained with images resized to 224 x 224 by `PIL.Image.NEAREST`. 
-        - Snapshots for `auto-sklearn` are not uploaded due to the embarrassingly large model sizes (lots of model ensemble).
-    -  `predictions.zip`: We also provide all standard prediction files by PyTorch, auto-sklearn, AutoKeras and Google AutoML Vision, which works with `medmnist.Evaluator`. Each file is named as `{flag}_{split}_[AUC]{auc:.3f}_[ACC]{acc:.3f}@{run}.csv`, e.g., `bloodmnist_test_[AUC]0.997_[ACC]0.957@autokeras_3.csv`.
+2. Clone this repository:
+
+        ```bash
+        git clone https://github.com/nimRobotics/csce_ml_experiments
+        ```
+
+3. Example run
+
+        ```bash
+        python csce_ml_experiments/MedMNIST2D/train_and_eval_pytorch.py \
+        --data_flag breastmnist \
+        --output_root './output2' \
+        --num_epochs 100 \
+        --batch_size 32 \
+        --download \
+        --model_flag resnet18 \
+        --optimizer adam \
+        --rotation 15 \
+        --scale \
+        --translation
+        ```
+
+4. Outputs are provided with the submission.
+
+
+# Usage 2D data
+
+Here is the documentation for the command-line options used in this script:
+
+## `--data_flag`
+
+- **Description:** A string argument that specifies the dataset to be used. Default is `pathmnist`.
+- **Type:** `str`
+
+## `--output_root`
+
+- **Description:** A string argument that specifies the root directory where the output files (models and results) will be saved. Default is `./output`.
+- **Type:** `str`
+
+## `--num_epochs`
+
+- **Description:** An integer argument that specifies the number of training epochs. If set to 0, the script will only test the model. Default is `100`.
+- **Type:** `int`
+
+## `--gpu_ids`
+
+- **Description:** A string argument that specifies the ID of the GPU to be used. Default is `0`.
+- **Type:** `str`
+
+## `--batch_size`
+
+- **Description:** An integer argument that specifies the batch size for training. Default is `128`.
+- **Type:** `int`
+
+## `--download`
+
+- **Description:** A boolean flag that specifies whether to download the dataset or not.
+- **Type:** `boolean`
+
+## `--resize`
+
+- **Description:** A boolean flag that specifies whether to resize the images from size 28x28 to 224x224.
+- **Type:** `boolean`
+
+## `--as_rgb`
+
+- **Description:** A boolean flag that specifies whether to convert the grayscale image to RGB.
+- **Type:** `boolean`
+
+## `--model_path`
+
+- **Description:** A string argument that specifies the root directory of the pre-trained model to be tested.
+- **Type:** `str`
+
+## `--model_flag`
+
+- **Description:** A string argument that specifies the backbone of the model to be used. The options are `resnet18` and `resnet50`. Default is `resnet18`.
+- **Type:** `str`
+
+## `--run`
+
+- **Description:** A string argument that specifies the name of the standard evaluation CSV file to be saved. The file name is in the format `{flag}_{split}_[AUC]{auc:.3f}_[ACC]{acc:.3f}@{run}.csv`. Default is `model1`.
+- **Type:** `str`
+
+## `--test_flag`
+
+- **Description:** A boolean flag that specifies whether to test the model or not.
+- **Type:** `boolean`
+
+## `--libauc_loss`
+
+- **Description:** A boolean flag that specifies whether to use the library AUC loss function or not.
+- **Type:** `boolean`
+
+## `--optimizer`
+
+- **Description:** A string argument that specifies the optimizer to be used. The options are `adam`, `sgd`, and `pesg`. Default is `adam`.
+- **Type:** `str`
+
+## `--rotation`
+
+- **Description:** An integer argument that specifies the angle of rotation for data augmentation. Default is `None`.
+- **Type:** `int`
+
+## `--scale`
+
+- **Description:** A boolean flag that specifies whether to apply scaling for data augmentation or not.
+- **Type:** `boolean`
+
+## `--translation`
+
+- **Description:** A boolean flag that specifies whether to apply translation for data augmentation or not.
+- **Type:** `boolean`
+
+
+# Usage 3D data
+
+
+# Command-Line Options Documentation
+
+Here is the documentation for the command-line options used in this script:
+
+## `--data_flag`
+
+- **Description:** A string argument that specifies the dataset to be used. Default is `organmnist3d`.
+- **Type:** `str`
+
+## `--output_root`
+
+- **Description:** A string argument that specifies the root directory where the output files (models) will be saved. Default is `./output`.
+- **Type:** `str`
+
+## `--num_epochs`
+
+- **Description:** An integer argument that specifies the number of training epochs. If set to 0, the script will only test the model. Default is `100`.
+- **Type:** `int`
+
+## `--gpu_ids`
+
+- **Description:** A string argument that specifies the ID of the GPU to be used. Default is `0`.
+- **Type:** `str`
+
+## `--batch_size`
+
+- **Description:** An integer argument that specifies the batch size for training. Default is `32`.
+- **Type:** `int`
+
+## `--conv`
+
+- **Description:** A string argument that specifies the converter to be used. The options are `Conv2_5d`, `Conv3d`, and `ACSConv`. Default is `ACSConv`.
+- **Type:** `str`
+
+## `--pretrained_3d`
+
+- **Description:** A string argument that specifies the type of pre-trained model to be used. Default is `i3d`.
+- **Type:** `str`
+
+## `--download`
+
+- **Description:** A boolean flag that specifies whether to download the dataset or not.
+- **Type:** `boolean`
+
+## `--as_rgb`
+
+- **Description:** A boolean flag that specifies whether to copy channels and transform the shape of the input from 1x28x28x28 to 3x28x28x28.
+- **Type:** `boolean`
+
+## `--shape_transform`
+
+- **Description:** A boolean flag that specifies whether to multiply 0.5 at evaluation for shape dataset.
+- **Type:** `boolean`
+
+## `--model_path`
+
+- **Description:** A string argument that specifies the root directory of the pre-trained model to be tested.
+- **Type:** `str`
+
+## `--model_flag`
+
+- **Description:** A string argument that specifies the backbone of the model to be used. The options are `resnet18` and `resnet50`. Default is `resnet18`.
+- **Type:** `str`
+
+## `--run`
+
+- **Description:** A string argument that specifies the name of the standard evaluation CSV file to be saved. The file name is in the format `{flag}_{split}_[AUC]{auc:.3f}_[ACC]{acc:.3f}@{run}.csv`. Default is `model1`.
+- **Type:** `str`
+
+## `--test_flag`
+
+- **Description:** A boolean flag that specifies whether to test the model or not.
+- **Type:** `boolean`
+
+## `--libauc_loss`
+
+- **Description:** A boolean flag that specifies whether to use the library AUC loss function or not.
+- **Type:** `boolean`
+
+## `--optimizer`
+
+- **Description:** A string argument that specifies the optimizer to be used. The options are `adam`, `sgd`, and `pesg`. Default is `adam`.
+- **Type:** `str`
+
+## `--rotation`
+
+- **Description:** An integer argument that specifies the angle of rotation for data augmentation. Default is `None`.
+- **Type:** `int`
+
+## `--scale`
+
+- **Description:** A boolean flag that specifies whether to apply scaling for data augmentation or not.
+- **Type:** `boolean`
+
+## `--translation`
+
+- **Description:** A boolean flag that specifies whether to apply translation for data augmentation or not.
+- **Type:** `boolean`
