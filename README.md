@@ -58,6 +58,8 @@ This repository is working with [MedMNIST official code](https://github.com/MedM
 
 4. Outputs are provided with the submission.
 
+5. All models: https://drive.google.com/drive/folders/1wKJIWhKXI5GV5gHLT6cHf47bo2I1hLnI?usp=share_link
+
 
 # Usage 2D data
 
