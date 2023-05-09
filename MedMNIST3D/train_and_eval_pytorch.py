@@ -250,7 +250,8 @@ def main(data_flag, output_root, num_epochs, gpu_ids, batch_size, conv, pretrain
             'batch_size: %d  lr: %f  num_epochs: %d  optimizer: %s  optimizer_type: %s  milestones: %s  gamma: %f\n' % \
             (batch_size, lr, num_epochs, optimizer, optimizer_type, milestones, gamma) + \
             'rotation: %d  translation: %d  scale: %d  libauc_loss: %d  \n' % \
-            (rotation, translation, scale, libauc_loss)
+            (rotation, translation, scale, libauc_loss) + \
+            'conv type: %s  \n' % (conv) 
     print(log)
     
     with open(os.path.join(output_root, '%s_log.txt' % (data_flag)), 'a') as f:
